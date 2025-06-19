@@ -1,0 +1,11 @@
+imagePath="clockman.png"
+
+animation state="BG"
+frame duration="0.084" x="0" y="0" w="128" h="128" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="0.084" x="0" y="128" w="128" h="128" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="0.084" x="0" y="256" w="128" h="128" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="0.084" x="0" y="384" w="128" h="128" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="0.084" x="128" y="0" w="128" h="128" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="0.084" x="128" y="128" w="128" h="128" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="0.084" x="128" y="256" w="128" h="128" originx="0" originy="0" flipx="0" flipy="0"
+frame duration="0.084" x="128" y="384" w="128" h="128" originx="0" originy="0" flipx="0" flipy="0"
