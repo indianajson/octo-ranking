@@ -12,6 +12,13 @@ This script allows users to enter free (unranked) or ranked matchmaking queues, 
 1. Add the `demo-server/scripts/octo-ranking` folder from this repository to your `/scripts` folder.
 2. For any net area you want to enable match making add a string based custom property named `OctoPVP` and make the value `true`. 
 
+### What improvements were made from the original script by OctoChris?
+
+1. The script is now stand alone and no longer requires ezlibs.
+2. The matchmaking settings and matchmaking request menu have been seperated.
+3. Activating the menu requires specific button presses (before all buttons would activate the menu).
+4. Matchmaking in an area is enabled via a Custom Property (before you had to modify the script). 
+
 ### How is rank determined?
 
 Numerical rating (and thus Letter Rank) is calculated using this formula (assuming abandoned matches/disconnections don't count):<br> 
@@ -21,13 +28,6 @@ Numerical rating (and thus Letter Rank) is calculated using this formula (assumi
 
 This is a conversion table between the numerical rating and the letter rank: 
 ![ELORatingGraphic](https://github.com/user-attachments/assets/5bd2cfe0-23d1-46d5-8c5f-02e3a8e87409)
-
-### What changes were made from the original script by OctoChris?
-
-1. The script is now stand alone and no longer requires ezlibs.
-2. The matchmaking settings and matchmaking request menu have been seperated.
-3. Activating the menu requires specific button presses (before all buttons would activate the menu).
-4. Matchmaking in an area is enabled via a Custom Property (before you had to modify the script). 
 
 ### Credit
 
