@@ -1,4 +1,4 @@
-# Octo-Ranking
+# OctoChris' Matchmaking Script
 A script by OctoChris to handle ranked PVP matchmaking on Open Net Battle servers.
 
 ![preview](https://github.com/user-attachments/assets/bf010971-1783-451a-befd-b6decb6cfeeb)
