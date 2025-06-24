@@ -31,5 +31,6 @@ This is a conversion table between the numerical rating and the letter rank:
 
 ### Credit
 
-Original Script - OctoChris
-Improvements - Indiana
+Original Script - OctoChris<br>
+Sword Emote during Battle - [Keristero](https://github.com/Keristero/)<br>
+Other Improvements - [Indiana](https://github.com/indianajson/)
