@@ -310,8 +310,8 @@ Net:on("post_selection", function(event)
 						Net.set_player_health(player_id,mhp)
 					end
 					Async.sleep(0.1).and_then(function(value)
-						players_in_battle[player_id] = actor_id
-    					players_in_battle[actor_id] = player_id
+						players_in_battle[player_ids[1]] = player_ids[2]
+    					players_in_battle[player_ids[2]] = player_ids[1]
 						Async.initiate_pvp(player_ids[1], player_ids[2]).and_then(function(value)
 							
 							if value.ran then
@@ -427,8 +427,8 @@ Net:on("post_selection", function(event)
 					end
 					Async.sleep(0.1).and_then(function(value)
 						Net.initiate_pvp(player_ids[1],player_ids[2])
-						players_in_battle[player_id] = actor_id
-    					players_in_battle[actor_id] = player_id
+						players_in_battle[player_ids[1]] = player_ids[2]
+    					players_in_battle[player_ids[2]] = player_ids[1]
 
 					end)
 				end)
