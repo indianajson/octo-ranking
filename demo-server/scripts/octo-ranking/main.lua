@@ -13,8 +13,6 @@ local json = require('scripts/octo-ranking/json')
 --defaults
 local player_id_ranks = {}
 local pvp_areas = {["default"] = false}
-local players_in_unranked_matchmaking = {}
-local players_in_ranked_matchmaking = {}
 local player_challenges = {}
 local bbs_type = {}
 local players_in_battle = {}
@@ -43,19 +41,7 @@ local function load_file(file_path)
 	end)
 end
 
-local function check_areas()
-	local areas = Net.list_areas()
-    for i, area_id in next, areas do
-        local area_id = tostring(area_id)
-		if Net.get_area_custom_property(area_id, "OctoPVP") == "true" then
-			pvp_areas[area_id] = true
-		elseif Net.get_area_custom_property(area_id, "OctoPVP") == "false" then
-			pvp_areas[area_id] = false
-		else 
-			print("The value of OctoPVP in "..area_id.. " is invalid.")
-		end
-	end
-end
+
 
 local function save_file(file_path)
 	local json = json.encode(player_id_ranks)
@@ -90,6 +76,27 @@ local function search_rankdata_based_on_name(Name)
 	end
 end
 
+local function check_areas()
+	local areas = Net.list_areas()
+    for i, area_id in next, areas do
+        local area_id = tostring(area_id)
+		if Net.get_area_custom_property(area_id, "OctoPVP") == "true" then
+			pvp_areas[area_id] = true
+		elseif Net.get_area_custom_property(area_id, "OctoPVP") == "false" then
+			pvp_areas[area_id] = false
+		else 
+			print("The value of OctoPVP in "..area_id.. " is invalid.")
+		end
+	end
+end
+
+--start Octo-Ranking
+print("[octo] Starting Octo-Ranking")
+load_file("scripts/octo-ranking/player_id_ranks")
+local players_in_unranked_matchmaking = {}
+local players_in_ranked_matchmaking = {}
+
+check_areas()
 local function find_nearest_rating_to(player_1_id)
 	local target_index = 1
 	local target_rating_delta = 0
@@ -105,10 +112,7 @@ local function find_nearest_rating_to(player_1_id)
 	return target_index
 end
 
---start Octo-Ranking
-print("[octo] Starting Octo-Ranking")
-load_file("scripts/octo-ranking/player_id_ranks")
-check_areas()
+
 
 Net:on("player_connect", function(event)
 	if player_id_ranks[event.player_id] == nil then
@@ -116,6 +120,7 @@ Net:on("player_connect", function(event)
 		if rank_data ~= nil then
 			player_id_ranks[player_id] = nil
 			player_id_ranks[event.player_id] = rank_data
+			
 		else
 			player_id_ranks[event.player_id] = {Secret = sha.sha256(Net.get_player_secret(event.player_id)),Name = Net.get_player_name(event.player_id),Rank = "?",Points = 25000,Games = 0,Win = 0,Loss = 0}
 		end
@@ -132,8 +137,9 @@ end)
 
 Net:on("tile_interaction", function(event)
 	--If Left Shoulder pressed
+	local player_id = event.player_id
+
 	if event.button == 1 then
-		local player_id = event.player_id
 		if pvp_areas[Net.get_player_area(player_id)] ~= true then return end
 		bbs_type[player_id] = "ServerMenu"
 		local server_menu = {
@@ -189,8 +195,6 @@ Net:on("actor_interaction", function(event)
 				player_challenges[player_id] = actor_id
 				Net.exclusive_player_emote(actor_id, player_id, 7)
 				Net.exclusive_player_emote(player_id, player_id, 7)
-
-				Net.close_bbs(player_id)
 			elseif event.post_id == "Challenge2" then
 				player_challenges[actor_id] = nil
 				Net.initiate_pvp(player_id,actor_id)
@@ -289,6 +293,7 @@ Net:on("post_selection", function(event)
 		pcall(function() Net.close_bbs(player_id) end)
 		Async.message_player(player_id, "Started ranked matchmaking... open Matchmaking Settings to cancel.").and_then(function(value)
 			table.insert(players_in_ranked_matchmaking,player_id)
+
 			if #players_in_ranked_matchmaking >= 2 then
 				Async.sleep(4.9).and_then(function(value)
 					if #players_in_ranked_matchmaking < 2 then
@@ -407,6 +412,7 @@ Net:on("post_selection", function(event)
 					end)
 				end)
 			end
+
 		end)
 	elseif post_id == "Unranked" and (find_in_table(players_in_unranked_matchmaking,player_id) == nil and find_in_table(players_in_ranked_matchmaking,player_id) == nil) then
 		pcall(function() Net.close_bbs(player_id) end)
