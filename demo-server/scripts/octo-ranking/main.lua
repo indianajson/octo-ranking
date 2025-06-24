@@ -17,6 +17,7 @@ local players_in_unranked_matchmaking = {}
 local players_in_ranked_matchmaking = {}
 local player_challenges = {}
 local bbs_type = {}
+local players_in_battle = {}
 
 local function find_in_table(t,v1)
 	for i,v2 in pairs(t) do
@@ -192,9 +193,18 @@ Net:on("actor_interaction", function(event)
 			elseif event.post_id == "Challenge2" then
 				player_challenges[actor_id] = nil
 				Net.initiate_pvp(player_id,actor_id)
+				players_in_battle[player_id] = actor_id
+    			players_in_battle[actor_id] = player_id
 			end
 		end)
 	end 
+end)
+
+Net:on("battle_results", function(event)
+  --Taken from Keristero's pvp_with_stats.lua
+  if players_in_battle[event.player_id] then
+      players_in_battle[event.player_id] = nil
+  end
 end)
 
 Net:on("player_disconnect", function(event)
@@ -211,6 +221,18 @@ Net:on("player_area_transfer", function(event)
 		pcall(function() table.remove(players_in_unranked_matchmaking,find_in_table(players_in_unranked_matchmaking,player_id)) end)
 		pcall(function() table.remove(players_in_ranked_matchmaking,find_in_table(players_in_ranked_matchmaking,player_id)) end)
 	end
+end)
+
+Net:on("tick", function(event)
+	--Taken from Keristero's pvp_with_stats.lua
+    timer = timer + event.delta_time
+    point_decay_timer = point_decay_timer + event.delta_time
+    if timer > 10 then
+        for player_id, value in pairs(players_in_battle) do
+            Net.set_player_emote(player_id, 7) --swords emote
+        end  
+        timer = 0
+    end
 end)
 
 Net:on("post_selection", function(event)
