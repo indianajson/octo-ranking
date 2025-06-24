@@ -18,7 +18,7 @@ local players_in_ranked_matchmaking = {}
 local player_challenges = {}
 local bbs_type = {}
 local players_in_battle = {}
-
+local timer = 0
 local function find_in_table(t,v1)
 	for i,v2 in pairs(t) do
 		if v1 == v2 then
@@ -47,7 +47,6 @@ local function check_areas()
 	local areas = Net.list_areas()
     for i, area_id in next, areas do
         local area_id = tostring(area_id)
-		print(Net.get_area_custom_property(area_id, "OctoPVP"))
 		if Net.get_area_custom_property(area_id, "OctoPVP") == "true" then
 			pvp_areas[area_id] = true
 		elseif Net.get_area_custom_property(area_id, "OctoPVP") == "false" then
@@ -56,7 +55,6 @@ local function check_areas()
 			print("The value of OctoPVP in "..area_id.. " is invalid.")
 		end
 	end
-	print(pvp_areas)
 end
 
 local function save_file(file_path)
@@ -189,7 +187,10 @@ Net:on("actor_interaction", function(event)
 		emitter:on("post_selection", function(event)
 			if event.post_id == "Challenge1" then
 				player_challenges[player_id] = actor_id
-				Net.exclusive_player_emote(player_id, actor_id, 7)
+				Net.exclusive_player_emote(actor_id, player_id, 7)
+				Net.exclusive_player_emote(player_id, player_id, 7)
+
+				Net.close_bbs(player_id)
 			elseif event.post_id == "Challenge2" then
 				player_challenges[actor_id] = nil
 				Net.initiate_pvp(player_id,actor_id)
@@ -223,13 +224,19 @@ Net:on("player_area_transfer", function(event)
 	end
 end)
 
+Net:on("player_disconnect", function(event)
+  local player_id = event.player_id
+  players_in_battle[player_id] = nil
+end)
+
 Net:on("tick", function(event)
 	--Taken from Keristero's pvp_with_stats.lua
     timer = timer + event.delta_time
-    point_decay_timer = point_decay_timer + event.delta_time
-    if timer > 10 then
+    if timer > 5 then
         for player_id, value in pairs(players_in_battle) do
-            Net.set_player_emote(player_id, 7) --swords emote
+			if players_in_battle[player_id] ~= nil then 
+            	Net.set_player_emote(player_id, 7) --swords emote
+			end
         end  
         timer = 0
     end
