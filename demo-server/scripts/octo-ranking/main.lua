@@ -17,12 +17,13 @@ local player_challenges = {}
 local bbs_type = {}
 local players_in_battle = {}
 local timer = 0
-local function find_in_table(t,v1)
-	for i,v2 in pairs(t) do
-		if v1 == v2 then
-			return i
-		end
-	end
+local function find_in_table(t, v1)
+    for i, v2 in pairs(t) do
+        if v1 == v2 then
+            return i
+        end
+    end
+    return nil
 end
 
 local function load_file(file_path)
@@ -136,39 +137,44 @@ Net:on("board_close", function(event)
 end)
 
 Net:on("tile_interaction", function(event)
+	print("interact")
 	--If Left Shoulder pressed
-	local player_id = event.player_id
+	print(players_in_ranked_matchmaking)
 
 	if event.button == 1 then
-		if pvp_areas[Net.get_player_area(player_id)] ~= true then return end
-		bbs_type[player_id] = "ServerMenu"
+		if pvp_areas[Net.get_player_area(event.player_id)] ~= true then return end
+		bbs_type[event.player_id] = "ServerMenu"
 		local server_menu = {
 			{ id = "Unranked", read = true, title = "Free Battle", author = ""},
-			{ id = "Ranked", read = true, title = "Rank Battle: "..(player_id_ranks[player_id].Rank).."/"..(player_id_ranks[player_id].Points), author = ""},
+			{ id = "Ranked", read = true, title = "Rank Battle: "..(player_id_ranks[event.player_id].Rank).."/"..(player_id_ranks[event.player_id].Points), author = ""},
 			{ id = "Leaderboard", read = true, title = "View Leaderboard", author = ""},
 			{ id = "About Ranking", read = true, title = "About Ranking", author = ""},
 
 		}
-		if player_id_ranks[player_id].Games < 5 then
+		if player_id_ranks[event.player_id].Games < 5 then
 			server_menu = {
 				{ id = "Unranked", read = true, title = "Free Battle", author = ""},
-				{ id = "Ranked", read = true, title = "Rank Battle: "..(player_id_ranks[player_id].Games).."/5 Games", author = ""},
+				{ id = "Ranked", read = true, title = "Rank Battle: "..(player_id_ranks[event.player_id].Games).."/5 Games", author = ""},
 				{ id = "Leaderboard", read = true, title = "View Leaderboard", author = ""},
 				{ id = "About Ranking", read = true, title = "About Ranking", author = ""},
 
 			}
 		end
-		player_challenges[player_id] = nil
-		pcall(function() table.remove(players_in_unranked_matchmaking,find_in_table(players_in_unranked_matchmaking,player_id)) end)
-		pcall(function() table.remove(players_in_ranked_matchmaking,find_in_table(players_in_ranked_matchmaking,player_id)) end)
-		Net.open_board(player_id,"Matchmaking Settings",{r = 127,g = 127,b = 127},server_menu)
+		player_challenges[event.player_id] = nil
+		if find_in_table(players_in_unranked_matchmaking,event.player_id) ~= nil then 
+			table.remove(players_in_unranked_matchmaking,find_in_table(players_in_unranked_matchmaking,event.player_id)) 
+		end
+		if find_in_table(players_in_ranked_matchmaking,event.player_id) ~= nil then 
+			table.remove(players_in_ranked_matchmaking,find_in_table(players_in_ranked_matchmaking,event.player_id)) 
+		end
+		Net.open_board(event.player_id,"Matchmaking Settings",{r = 127,g = 127,b = 127},server_menu)
 	end 
 end)
 
 Net:on("actor_interaction", function(event)
+	local player_id = event.player_id
+	local actor_id = event.actor_id
 	if event.button == 0 then 
-		local player_id = event.player_id
-		local actor_id = event.actor_id
 		if pvp_areas[Net.get_player_area(player_id)] ~= true then return end
 		if not Net.is_player(actor_id) then return end
 		bbs_type[player_id] = "ServerMenu"
@@ -187,8 +193,12 @@ Net:on("actor_interaction", function(event)
 			server_menu[1] = { id = "Challenge2", read = true, title = "Accept Battle: "..(Net.get_player_name(actor_id)), author = ""}
 		end
 		player_challenges[player_id] = nil
-		pcall(function() table.remove(players_in_unranked_matchmaking,find_in_table(players_in_unranked_matchmaking,player_id)) end)
-		pcall(function() table.remove(players_in_ranked_matchmaking,find_in_table(players_in_ranked_matchmaking,player_id)) end)
+		if find_in_table(players_in_unranked_matchmaking,event.player_id) ~= nil then 
+			table.remove(players_in_unranked_matchmaking,find_in_table(players_in_unranked_matchmaking,player_id))
+		end
+		if find_in_table(players_in_ranked_matchmaking,event.player_id) ~= nil then 
+			table.remove(players_in_ranked_matchmaking,find_in_table(players_in_ranked_matchmaking,player_id))
+		end
 		local emitter = Net.open_board(player_id,"Matchmaking Request",{r = 127,g = 127,b = 127},server_menu)
 		emitter:on("post_selection", function(event)
 			if event.post_id == "Challenge1" then
@@ -210,27 +220,34 @@ Net:on("battle_results", function(event)
   if players_in_battle[event.player_id] then
       players_in_battle[event.player_id] = nil
   end
+  if player_challenges[event.player_id] then
+	player_challenges[event.player_id] = nil
+  end
 end)
 
 Net:on("player_disconnect", function(event)
 	local player_id = event.player_id
+    players_in_battle[player_id] = nil
 	player_challenges[player_id] = nil
-	pcall(function() table.remove(players_in_unranked_matchmaking,find_in_table(players_in_unranked_matchmaking,player_id)) end)
-	pcall(function() table.remove(players_in_ranked_matchmaking,find_in_table(players_in_ranked_matchmaking,player_id)) end)
+	if find_in_table(players_in_unranked_matchmaking,event.player_id) ~= nil then 
+		table.remove(players_in_unranked_matchmaking,find_in_table(players_in_unranked_matchmaking,player_id)) 
+	end
+	if find_in_table(players_in_ranked_matchmaking,event.player_id) ~= nil then 
+		table.remove(players_in_ranked_matchmaking,find_in_table(players_in_ranked_matchmaking,player_id)) 
+	end
 end)
 
 Net:on("player_area_transfer", function(event)
 	local player_id = event.player_id
 	if pvp_areas[Net.get_player_area(player_id)] ~= true then
 		player_challenges[player_id] = nil
-		pcall(function() table.remove(players_in_unranked_matchmaking,find_in_table(players_in_unranked_matchmaking,player_id)) end)
-		pcall(function() table.remove(players_in_ranked_matchmaking,find_in_table(players_in_ranked_matchmaking,player_id)) end)
+		if find_in_table(players_in_unranked_matchmaking,event.player_id) ~= nil then 
+			table.remove(players_in_unranked_matchmaking,find_in_table(players_in_unranked_matchmaking,player_id)) 
+		end
+		if find_in_table(players_in_ranked_matchmaking,event.player_id) ~= nil then 
+			table.remove(players_in_ranked_matchmaking,find_in_table(players_in_ranked_matchmaking,player_id)) 
+		end
 	end
-end)
-
-Net:on("player_disconnect", function(event)
-  local player_id = event.player_id
-  players_in_battle[player_id] = nil
 end)
 
 Net:on("tick", function(event)
@@ -293,16 +310,17 @@ Net:on("post_selection", function(event)
 		pcall(function() Net.close_bbs(player_id) end)
 		Async.message_player(player_id, "Started ranked matchmaking... open Matchmaking Settings to cancel.").and_then(function(value)
 			table.insert(players_in_ranked_matchmaking,player_id)
-
 			if #players_in_ranked_matchmaking >= 2 then
 				Async.sleep(4.9).and_then(function(value)
 					if #players_in_ranked_matchmaking < 2 then
 						while #players_in_ranked_matchmaking > 0 do
+
 							local player_id = table.remove(players_in_ranked_matchmaking,1)
 							Net.message_player(player_id, "No other players in matchmaking!")
 						end
 						return
 					end
+
 					local player_ids = {table.remove(players_in_ranked_matchmaking,1)}
 					table.insert(player_ids,table.remove(players_in_ranked_matchmaking,find_nearest_rating_to(player_ids[1])))
 					local hps = {Net.get_player_max_health(player_ids[1]),Net.get_player_max_health(player_ids[2])}
@@ -422,11 +440,13 @@ Net:on("post_selection", function(event)
 				Async.sleep(4.9).and_then(function(value)
 					if #players_in_unranked_matchmaking < 2 then
 						while #players_in_unranked_matchmaking > 0 do
+
 							local player_id = table.remove(players_in_unranked_matchmaking,1)
 							Net.message_player(player_id, "No other players in matchmaking!")
 						end
 						return
 					end
+
 					local player_ids = {table.remove(players_in_unranked_matchmaking,1),table.remove(players_in_unranked_matchmaking,1)}
 					for n,player_id in pairs(player_ids) do
 						if Net.is_player_battling(player_id) then return end
