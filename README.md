@@ -1,5 +1,3 @@
-# --- CURRENTLY BROKEN ---
-
 # OctoChris' Matchmaking Script
 A script by OctoChris to handle ranked PVP matchmaking on Open Net Battle servers.
 
